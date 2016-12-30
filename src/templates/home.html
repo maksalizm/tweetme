@@ -20,14 +20,29 @@
 </head>
 <body>
 <h1>Hello, world!</h1>
+<div id="test">
 
+</div>
+<button id="testTemplate">1324</button>
+<div>
+    <script id="test-template" type="text/x-template">
+        <div>
+            this is fuck you
+        </div>
+        <div>
+            what are you doing"
+        </div>
+    </script>
+</div>
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="http://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
 <script src="{% static 'js/bootstrap.min.js' %}"></script>
-
+<script id="leadingOrTrailingText" type="text/x-jquery-tmpl">
+    ${firstName} <strong>${lastName}</strong> <br/>
+</script>
 <script>
-
     $.ajaxSetup({
         beforeSend: function (xhr, settings) {
             function getCookie(name) {
@@ -53,25 +68,38 @@
         }
     });
 
-    var ajax = function() {
-        $.ajax({
-            url: '{% url "landing" %}',
-            data: {1: '123', 2: '456'},
-            method: 'POST',
-            success: function (res) {
-                console.log(res);
-                if (res.success == "True") {
-                    console.log('1');
-                    setTimeout(ajax(), 1000);
-                }
-            },
-            error: function (res) {
-                console.log(res);
-            }
+    //    function autoSave() {
+    //        $.ajax({
+    //            url: '{% url "landing" %}',
+    //            data: {1: '123', 2: '456'},
+    //            method: 'POST',
+    //            success: function (res) {
+    //                console.log(res);
+    //                if (res.success == "True") {
+    //                    console.log('1');
+    //                    setTimeout(function () {
+    //                        autoSave()
+    //                    }, 1000);
+    //                }
+    //            },
+    //            error: function (res) {
+    //                console.log(res);
+    //            }
+    //        });
+    //    }
+    //    autoSave();
+
+    $(document).ready(function () {
+        var arrayOfDataObjects = [
+            {firstName: "Dave", lastName: "Reed"},
+            {firstName: "Boris", lastName: "Moore"}
+        ];
+        $('#testTemplate').on('click', function(){
+            $("#leadingOrTrailingText")
+            .tmpl(arrayOfDataObjects)
+            .appendTo("#test");
         });
-        return 1000;
-    }
-    ajax();
+    });
 </script>
 
 </body>
