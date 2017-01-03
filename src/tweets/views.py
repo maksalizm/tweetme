@@ -4,6 +4,7 @@ from django.forms.utils import ErrorList
 from django import forms
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
 
 from .models import Tweet
 from .forms import TweetModelForm
@@ -29,12 +30,12 @@ class TweetListView(ListView):
         qs = Tweet.objects.all()
         query = self.request.GET.get("q", None)
         if query is not None:
-            qs = qs.filter(content__icontains=query)
+            qs = qs.filter(Q(content__icontains=query) |
+                           Q(user__username__icontains=query))
         return qs
 
     def get_context_data(self, **kwargs):
         context = super(TweetListView, self).get_context_data(**kwargs)
-        print context
         return context
 
 
