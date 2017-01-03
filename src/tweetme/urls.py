@@ -22,8 +22,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     #  url(r'^S', home, name="home"),
-    url(r'tweet/', include('tweets.urls'), name="tweet"),
-
+    url(r'tweet/', include('tweets.urls', namespace="tweet")),
 ]
 
 if settings.DEBUG:
