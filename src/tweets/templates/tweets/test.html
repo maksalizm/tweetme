@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div id="target">
+    </div>
+
+<button data-id="form_first">첫번째</button>
+<button data-id="form_second">두번째</button>
+<button data-id="form_third">세번째</button>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="http://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
+<script id="form_first" type="text/x-template">
+    <div>
+        <div>이센스</div>
+        <div>where to go</div>
+    </div>
+</script>
+<script id="form_second" type="text/x-template">
+    <div>
+        <div>이센스_2</div>
+        <div>where to go_2</div>
+    </div>
+</script>
+<script id="form_third" type="text/x-template">
+    <div>
+        <div>이센스_3</div>
+        <div>where to go_3</div>
+    </div>
+</script>
+<script>
+    $.tmpl(form_first).appendTo("#target");
+    $('button').on('click', function(){
+        var $self = this;
+        var targetId = $self.dataset.id;
+        $('#target').html($('#'+targetId).tmpl());
+    });
+    console.dir(document);
+    console.dir(window);
+//    $('#target').append($('#form_first'));
+</script>
+</body>
+</html>
