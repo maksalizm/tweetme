@@ -1,3 +1,11 @@
+{% include "tweets/tweet_search_form.html" %}
+<br/>
 {% for object in object_list %}
-<div>{{object}}</div>
+<div>{{object.content}}</div>
+<div>{{object.user}}</div>
+<div>{{object.timestamp|timesince}} ago</div>
+{% empty %}
+{% if request.GET.q %}
+<div>empty</div>
+{% endif %}
 {% endfor %}
