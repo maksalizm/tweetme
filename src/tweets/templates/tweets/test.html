@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+
+<script>
+
+    var i = 1;
+    var j = 1;
+
+    var context = function () {
+
+        var t1;
+        var t2;
+
+        return {
+            set: function (a, b) {
+                t1 = a;
+                t2 = b;
+            },
+            get: function () {
+                return {
+                    "0": t1,
+                    "1": t2,
+                }
+            }
+        }
+    };
+
+    function b() {
+        var a = context();
+        console.log(a);
+        a.set(1, 2);
+        console.log(a.get());
+
+        return a
+    }
+
+    function c() {
+
+        console.log(context());
+    }
+
+    //    a.set(3,4);
+
+    //    function printClosureData() {
+    //        var a = hold(1);
+    //        console.log(a())
+    //    }
+    //
+    //    function printClousreData2() {
+    //        var a = hold();
+    //        console.log(a())
+    //    }
+    //
+    //    function print3() {
+    //        var a = hold(1, 2);
+    //        console.log(a())
+    //    }
+    //
+    //    function print4() {
+    //        var a = hold();
+    //        console.log(a())
+    //    }
+    //
+    //    printClosureData()
+    //    printClousreData2()
+    //    print3()
+    //    print4()
+
+    /**
+     * @param job 비동기 함수
+     * @return callback 등록 인터페이스
+     */
+    function AsyncRunner(job) {
+        var ms = 1000;
+        var future = [];
+        var errorHandler = function (err) {
+        }
+        var executed = false;
+
+        // 비동기 함수에서 콜백을 실행한다.
+        // 유효성 검사를 할 필요가 없이 확실한 함수를 전달한다.
+        job(function (data) {
+
+            // 이미 수행되었거나 실행할 작업이 없어도 중단한다.
+            if (executed || !future.length) return;
+
+            try {
+                // Go.
+                future.forEach(function (job) {
+                    job(data);
+                });
+            }
+            catch (error) {
+
+                // 에러가 나면 지정된 에러 핸들러를 실행하고 중단한다.
+                return errorHandler(new Error(error));
+            }
+            finally {
+                executed = true;
+            }
+        });
+
+        return function (goods) {
+
+            return {
+
+                // 미래에 처리할 작업을 등록하는 메서드를 반환한다
+                ok: function (job) {
+                    if (job) future.push(job);
+                    return this;
+                },
+
+                // 에러 핸들러를 등록한다.
+                error: function (_errorHandler) {
+                    errorHandler = errorHandler || _errorHandler;
+                    return this;
+                }
+            }
+        }
+    }
+
+    /**
+     * ms 만큼 지연된 Promise 를 반환
+     *
+     * @param ms 딜레이 밀리초
+     * @return tid 타임아이디, ms 대기시간
+     */
+    function throttle(ms) {
+        // Promise 를 생성한다
+        return new Promise(function (resolve) {
+
+            // 주어진 ms로 Timer 를 예약한다
+            var tid = setTimeout(function () {
+
+                // 대기가 끝나면 resolve 로 Promise 의 resolved 상태를 바꾸고 변화를 알림
+                resolve({
+                    tid: tid, // Timer 아이디
+                    ms: ms // 대기시간
+                });
+            }, ms);
+        });
+    }
+
+    throttle(1000 * 6).then(function () {
+        console.log('God is dead. - Friedrich Wilhelm Nietzsche')
+    });
+</script>
+</body>
+</html>
