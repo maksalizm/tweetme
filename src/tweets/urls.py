@@ -9,7 +9,7 @@ from .views import (
 )
 
 urlpatterns = [
-    url(r'^$', RedirectView.as_view(url="/")),
+    # url(r'^$', RedirectView.as_view(url="/")),
     url(r'^search/$', TweetListView.as_view(), name="list"),
     url(r'^create/$', TweetCreateView.as_view(), name="create"),
     url(r'^(?P<pk>\d+)/$', TweetDetailView.as_view(), name="detail"),
