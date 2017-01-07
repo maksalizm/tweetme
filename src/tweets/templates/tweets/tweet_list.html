@@ -12,34 +12,164 @@
         <div class="col-sm-9">
             {% if not request.GET.q %}
                 <div class="row">
-                    {% include "tweets/form.html" with form=create_form action_url=create_url btn_value='Tweet' %}
+                    {% include "tweets/form.html" with form=create_form action_url=create_url btn_value='Tweet' id='tweet_form' %}
                 </div>
                 <hr/>
             {% endif %}
-            {% for object in object_list %}
-                <div class="media">
-                    <div class="media-left">
-                        {% if object.image %}
-                            <a href="#">
-                                <img class="media-object" src="..." alt="...">
-                            </a>
-                        {% endif %}
-                    </div>
-                    <div class="media-body">
-                        {{ object.content }} <br/>
-                        via {{ object.user }} | {{ object.timestamp|timesince }} ago |
-                        {{ object.pk }}
-                        <a href="{{ object.get_absolute_url }}">view</a>
-                    </div>
-                </div>
-                <hr/>
-                {% empty %}
-                {% if request.GET.q %}
-                    <p>empty</p>
-                {% else %}
-                    <p>no tweet yet.</p>
-                {% endif %}
-            {% endfor %}
+            {#            {% for object in object_list %}#}
+            {#                <div class="media">#}
+            {#                    <div class="media-left">#}
+            {#                        {% if object.image %}#}
+            {#                            <a href="#">#}
+            {#                                <img class="media-object" src="..." alt="...">#}
+            {#                            </a>#}
+            {#                        {% endif %}#}
+            {#                    </div>#}
+            {#                    <div class="media-body">#}
+            {#                        {{ object.content }} <br/>#}
+            {#                        via {{ object.user }} | {{ object.timestamp|timesince }} ago |#}
+            {#                        {{ object.pk }}#}
+            {#                        <a href="{{ object.get_absolute_url }}">view</a>#}
+            {#                    </div>#}
+            {#                </div>#}
+            {#                <hr/>#}
+            {#                {% empty %}#}
+            {#                {% if request.GET.q %}#}
+            {#                    <p>empty</p>#}
+            {#                {% else %}#}
+            {#                    <p>no tweet yet.</p>#}
+            {#                {% endif %}#}
+            {#            {% endfor %}#}
+            <div id="tweet-container">
+
+            </div>
         </div>
     </div>
 {% endblock content %}
+
+
+{% block script %}
+    <script src="http://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.js"></script>
+    <script id="tweet" type="text/x-template">
+        <div class="media">
+            <div class="media-body">
+                ${content} <br/>
+                via ${ user }
+                <a href="#">view</a>
+            </div>
+        </div>
+    </script>
+    <script>
+        function getParameterByName(name, url) {
+            if (!url) {
+                url = window.location.href;
+            }
+            name = name.replace(/[\[\]]/g, "\\$&");
+            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, " "));
+        }
+
+        $(document).ready(function () {
+            var query = getParameterByName('q');
+            var tweetList = [];
+
+            function parseTweet() {
+
+                if (tweetList == 0) {
+                    $("#tweet-container").text('no tweet')
+                } else {
+                    $.each(tweetList, function (key, value) {
+                        $('#tweet-container').append($('#tweet').tmpl({
+                            'content': value.content,
+                            'user': value.user.username
+                        }))
+                    })
+                }
+            }
+
+            function fetchTweets(sendData) {
+                $.ajax(
+                    {
+                        url: "/api/tweet/",
+                        method: "GET",
+                        data: {
+                             "q" : sendData
+                        },
+                        success: function (data) {
+                            tweetList = data;
+                            console.log(data);
+                            parseTweet();
+                        }
+                    }
+                )
+            }
+            fetchTweets();
+
+            $("#tweet-form").submit(function(evt) {
+                evt.preventDefault();
+
+                var $self = $(this);
+                var formData = $self.serialize();
+                   $.ajax(
+                    {
+                        url: "/api/tweet/create/",
+                        method: "POST",
+                        data: formData,
+                        success: function (data) {
+                            {#                            tweetList = data;#}
+                            console.log(data);
+                            fetchTweets();
+                        },
+                        error: function(data){
+                          console.log(data.status);
+                          console.log(data.statusText);
+                        }
+                    }
+                );
+            });
+            fetchTweets();
+        })
+
+    </script>
+    {#<script>#}
+    {##}
+    {#    function return_data(type) {#}
+    {#        switch(type) {#}
+    {#            case "esens":#}
+    {#                return {#}
+    {#                    "username": "이센스",#}
+    {#                    "title": "where to go"#}
+    {#                };#}
+    {#            case "beenzino":#}
+    {#                return {#}
+    {#                    "username": "빈지노",#}
+    {#                    "title": "if i die tomorrow"#}
+    {#                }#}
+    {#        }#}
+    {#    }#}
+    {##}
+    {#    function show_form(type, targetValue) {#}
+    {#        var data;#}
+    {#        switch(type) {#}
+    {#            case "form_first":#}
+    {#                data = return_data(targetValue);#}
+    {#                break;#}
+    {#            case "form_second":#}
+    {#                data = return_data(targetValue);#}
+    {#                break;#}
+    {#        }#}
+    {#        $('#target').html($('#form').tmpl(data));#}
+    {#    }#}
+    {##}
+    {#    $('button').on('click', function(){#}
+    {#        var $self = this;#}
+    {#        var targetId = $self.dataset.id;#}
+    {#        var targetValue = $self.dataset.value;#}
+    {#        show_form(targetId, targetValue);#}
+    {#    });#}
+    {#//    $('#target').append($('#form_first'));#}
+    {#</script>#}
+{% endblock script %}
