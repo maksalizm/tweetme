@@ -12,7 +12,7 @@
         <div class="col-sm-9">
             {% if not request.GET.q %}
                 <div class="row">
-                    {% include "tweets/form.html" with form=create_form action_url=create_url btn_value='Tweet' id='tweet_form' %}
+                    {% include "tweets/form.html" with form=create_form btn_value='Tweet' id='tweet_form' %}
                 </div>
                 <hr/>
             {% endif %}
@@ -54,10 +54,11 @@
         <div class="media">
             <div class="media-body">
                 ${content} <br/>
-                via ${ user }
+                via ${user} | ${dateDisplay}
                 <a href="#">view</a>
             </div>
         </div>
+        <hr/>
     </script>
     <script>
         function getParameterByName(name, url) {
@@ -75,62 +76,65 @@
         $(document).ready(function () {
             var query = getParameterByName('q');
             var tweetList = [];
+            var tweetArray = [];
 
+            fetchTweets();
             function parseTweet() {
-
                 if (tweetList == 0) {
                     $("#tweet-container").text('no tweet')
                 } else {
+                    tweetArray = [];
                     $.each(tweetList, function (key, value) {
-                        $('#tweet-container').append($('#tweet').tmpl({
+                        tweetArray.push($('#tweet').tmpl({
                             'content': value.content,
-                            'user': value.user.username
+                            'user': value.user.username,
+                            'dateDisplay': value.date_display,
                         }))
-                    })
+                    });
+                    $("#tweet-container").html(tweetArray);
                 }
             }
 
             function fetchTweets(sendData) {
-                $.ajax(
+                var promise = $.ajax(
                     {
                         url: "/api/tweet/",
                         method: "GET",
-                        data: {
-                             "q" : sendData
-                        },
+                        data: sendData,
                         success: function (data) {
                             tweetList = data;
-                            console.log(data);
-                            parseTweet();
                         }
                     }
-                )
-            }
-            fetchTweets();
+                );
 
-            $("#tweet-form").submit(function(evt) {
+                promise.done(function () {
+                    parseTweet();
+                })
+            }
+
+            $("#tweet_form").submit(function (evt) {
                 evt.preventDefault();
 
                 var $self = $(this);
                 var formData = $self.serialize();
-                   $.ajax(
+                var promise = $.ajax(
                     {
-                        url: "/api/tweet/create/",
+                        url: "/api/tweet/create-api/",
                         method: "POST",
                         data: formData,
                         success: function (data) {
-                            {#                            tweetList = data;#}
-                            console.log(data);
-                            fetchTweets();
                         },
-                        error: function(data){
-                          console.log(data.status);
-                          console.log(data.statusText);
+                        error: function (data) {
+                            console.log(data.status);
+                            console.log(data.statusText);
                         }
                     }
                 );
+                promise.done(function () {
+                    fetchTweets();
+                    $("#id_content").val('');
+                })
             });
-            fetchTweets();
         })
 
     </script>
