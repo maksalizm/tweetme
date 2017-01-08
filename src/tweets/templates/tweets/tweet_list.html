@@ -43,6 +43,7 @@
             <div id="tweet-container">
 
             </div>
+            <a href="#" id="load_more">Load More Tweets</a>
         </div>
     </div>
 {% endblock content %}
@@ -77,6 +78,7 @@
             var query = getParameterByName('q');
             var tweetList = [];
             var tweetArray = [];
+            var nextTweetUrl;
 
             fetchTweets();
             function parseTweet() {
@@ -91,18 +93,32 @@
                             'dateDisplay': value.date_display,
                         }))
                     });
-                    $("#tweet-container").html(tweetArray);
+                    $("#tweet-container").append(tweetArray);
                 }
             }
 
-            function fetchTweets(sendData) {
+            function fetchTweets(sendData, url) {
+
+                var fetchUrl;
+
+                if(!url) {
+                    fetchUrl = "/api/tweet/list-api";
+                } else {
+                    fetchUrl = url;
+                }
+
                 var promise = $.ajax(
                     {
-                        url: "/api/tweet/",
+                        url: fetchUrl,
                         method: "GET",
                         data: sendData,
                         success: function (data) {
-                            tweetList = data;
+                            tweetList = data.results;
+                            if(data.next) {
+                                nextTweetUrl = data.next;
+                            } else {
+                                $("#load_more").css("display", "none");
+                            }
                         }
                     }
                 );
@@ -156,6 +172,11 @@
                 $("#tweet_chars_left").html(charsCurrent + '/' + charsStart);
             })
 
+
+            $('#load_more').on('click', function (evt) {
+                evt.preventDefault();
+                fetchTweets("", nextTweetUrl)
+            })
         })
 
     </script>

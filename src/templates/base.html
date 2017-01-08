@@ -28,7 +28,52 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 
 {% block script %}{% endblock script %}
+<script>
+    $(document).ready(function () {
+        $('#navbar_search_form')
+            .find("input")
+            .keyup(function () {
+                var searchQuery = $(this).val();
+                var queryObject = {"q": searchQuery};
 
+                fetchTweets(queryObject)
+            });
+
+        function parseTweet(data) {
+            var tweetArray = [];
+            if (data == 0) {
+                $("#tweet-container").text('no tweet')
+            } else {
+                $.each(data, function (key, value) {
+                    tweetArray.push($('#tweet').tmpl({
+                        'content': value.content,
+                        'user': value.user.username,
+                        'dateDisplay': value.date_display,
+                    }))
+                });
+                $("#tweet-container").html(tweetArray);
+            }
+        }
+
+        function fetchTweets(sendData) {
+            var tweetArray = [];
+            var promise = $.ajax(
+                {
+                    url: "/api/tweet/list-api",
+                    method: "GET",
+                    data: sendData,
+                    success: function (data) {
+                        tweetArray = data;
+                    }
+                }
+            );
+
+            promise.done(function () {
+                parseTweet(tweetArray);
+            })
+        }
+    });
+</script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
 <script src="{% static 'js/bootstrap.min.js' %}"></script>
 </body>

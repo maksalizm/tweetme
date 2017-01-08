@@ -5,7 +5,7 @@ from django.db.models import Q
 
 from tweets.models import Tweet
 from .serializers import TweetModelSerializer
-
+from .pagination import StandardResultPagination
 
 class TweetCreateAPIView(generics.CreateAPIView):
     serializer_class = TweetModelSerializer
@@ -17,11 +17,11 @@ class TweetCreateAPIView(generics.CreateAPIView):
 
 class TweetListAPIView(generics.ListAPIView):
     serializer_class = TweetModelSerializer
+    pagination_class = StandardResultPagination
 
     def get_queryset(self):
         qs = Tweet.objects.all().order_by('-timestamp')
         query = self.request.GET.get("q", None)
-        print query
         if query is not None:
             qs = qs.filter(
                 Q(content__icontains=query) |
