@@ -135,6 +135,27 @@
                     $("#id_content").val('');
                 })
             });
+
+            var charsStart = 140;
+            var charsCurrent = 0;
+            $("#tweet_form").append('<span id="tweet_chars_left">' + 0 + '/'+ charsStart+'</span>');
+            $('#id_content').keydown(function(evt) {
+                var tweetValue = $(this).val();
+                charsCurrent = charsStart - tweetValue.length;
+
+                if( charsCurrent < 0 ) {
+                    $("#tweet_chars_left").css({
+                        color: "red"
+                    })
+                } else {
+                    $("#tweet_chars_left").css({
+                        color: "#555555"
+                    })
+                }
+
+                $("#tweet_chars_left").html(charsCurrent + '/' + charsStart);
+            })
+
         })
 
     </script>
