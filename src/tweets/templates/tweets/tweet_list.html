@@ -55,7 +55,7 @@
         <div class="media">
             <div class="media-body">
                 ${content} <br/>
-                via ${user} | ${dateDisplay}
+                via <a href="${url}">${user}</a> | ${dateDisplay}
                 <a href="#">view</a>
             </div>
         </div>
@@ -91,6 +91,7 @@
                             'content': value.content,
                             'user': value.user.username,
                             'dateDisplay': value.date_display,
+                            'url': value.user.url,
                         }))
                     });
                     $("#tweet-container").append(tweetArray);
