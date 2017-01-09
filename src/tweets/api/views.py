@@ -7,6 +7,7 @@ from tweets.models import Tweet
 from .serializers import TweetModelSerializer
 from .pagination import StandardResultPagination
 
+
 class TweetCreateAPIView(generics.CreateAPIView):
     serializer_class = TweetModelSerializer
     permission_classes = [permissions.IsAuthenticated]
