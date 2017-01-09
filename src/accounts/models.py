@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 from django.conf import settings
 from django.db import models
+from django.urls import reverse_lazy
 
 
 # Create your models here.
@@ -18,6 +19,24 @@ class UserProfileManager(models.Manager):
             pass
         return qs
 
+    def toggle_follow(self, user, to_toggle_user):
+        user_profile, created = UserProfile.objects.get_or_create(user=user)  # (user_obj, true)
+        if to_toggle_user in user_profile.following.all():
+            user_profile.following.remove(to_toggle_user)
+            added = False
+        else:
+            user_profile.following.add(to_toggle_user)
+            added = True
+        return added
+
+    def is_following(self, user, followed_by_user):
+        user_profile, created = UserProfile.objects.get_or_create(user=user)
+        if created:
+            return False
+        if followed_by_user in user_profile.following.all():
+            return True
+        return False
+
 
 class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name="profile")
@@ -34,5 +53,11 @@ class UserProfile(models.Model):
         return str(self.following.all().count())
 
     def get_following(self):
-        users = self.following.all() # User.objects.all()
+        users = self.following.all()  # User.objects.all()
         return users.exclude(username=self.user.username)
+
+    def get_follow_url(self):
+        return reverse_lazy("profile:follow", kwargs={"username": self.user.username})
+
+    def get_absolute_url(self):
+        return reverse_lazy("profile:detail", kwargs={"username": self.user.username})
