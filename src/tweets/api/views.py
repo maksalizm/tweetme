@@ -22,7 +22,8 @@ class TweetListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         qs = Tweet.objects.all().order_by('-timestamp')
-        query = self.request.GET.get("q", None)
+        query = self.request.query_params.get("q", None)
+        print query
         if query is not None:
             qs = qs.filter(
                 Q(content__icontains=query) |

@@ -41,10 +41,12 @@
 
         function parseTweet(data) {
             var tweetArray = [];
-            if (data == 0) {
+            console.log(data.count);
+            console.log(data.results);
+            if (data.count === 0) {
                 $("#tweet-container").text('no tweet')
             } else {
-                $.each(data, function (key, value) {
+                $.each(data.results, function (key, value) {
                     tweetArray.push($('#tweet').tmpl({
                         'content': value.content,
                         'user': value.user.username,
@@ -56,21 +58,22 @@
         }
 
         function fetchTweets(sendData) {
-            var tweetArray = [];
-            var promise = $.ajax(
+            var nextTweetUrl;
+            $.ajax(
                 {
                     url: "/api/tweet/list-api/",
                     method: "GET",
                     data: sendData,
                     success: function (data) {
-                        tweetArray = data;
+                        parseTweet(data);
+                        if (data.next) {
+                            nextTweetUrl = data.next;
+                        } else {
+                            $("#load_more").css("display", "none");
+                        }
                     }
                 }
             );
-
-            promise.done(function () {
-                parseTweet(tweetArray);
-            })
         }
     });
 </script>
