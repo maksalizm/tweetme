@@ -81,7 +81,7 @@
             var nextTweetUrl;
 
             fetchTweets();
-            function parseTweet() {
+            function parseTweet(endlessPagination) {
                 if (tweetList == 0) {
                     $("#tweet-container").text('no tweet')
                 } else {
@@ -94,11 +94,15 @@
                             'url': value.user.url,
                         }))
                     });
-                    $("#tweet-container").append(tweetArray);
+                    if (endlessPagination) {
+                        $("#tweet-container").append(tweetArray);
+                    } else {
+                        $("#tweet-container").html(tweetArray);
+                    }
                 }
             }
 
-            function fetchTweets(sendData, url) {
+            function fetchTweets(sendData, url, endlessPagination) {
 
                 var fetchUrl;
 
@@ -120,13 +124,14 @@
                             } else {
                                 $("#load_more").css("display", "none");
                             }
+                            if (endlessPagination) {
+                                parseTweet(true);
+                            } else {
+                                parseTweet(false);
+                            }
                         }
                     }
                 );
-
-                promise.done(function () {
-                    parseTweet();
-                })
             }
 
             $("#tweet_form").submit(function (evt) {
@@ -176,7 +181,7 @@
 
             $('#load_more').on('click', function (evt) {
                 evt.preventDefault();
-                fetchTweets("", nextTweetUrl)
+                fetchTweets("", nextTweetUrl, true)
             })
         })
 
