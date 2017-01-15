@@ -7,6 +7,8 @@ from django.utils import timezone
 from django.db.models.signals import post_save
 from .validators import validate_content
 
+from hashtags.signals import parsed_hashtags
+
 
 class TweetManager(models.Manager):
     def retweet(self, user, parent_obj):
@@ -58,13 +60,11 @@ def tweet_save_receiver(sender, instance, created, *args, **kwargs):
     if created and not instance.parent:
         # notify user
         user_regex = r'@(?P<username>[\w.@+-]+)'
-        m = re.findall(user_regex, instance.content)
+        usernames = re.findall(user_regex, instance.content)
 
         hash_regex = r'#(?P<hashtag>[\w\d-]+)'
-        h_m = re.findall(hash_regex, instance.content)
-
-
-
+        hashtags = re.findall(hash_regex, instance.content)
+        parsed_hashtags.send(sender=instance.__class__, hashtag_list=hashtags)
 
 
 post_save.connect(tweet_save_receiver, sender=Tweet)
