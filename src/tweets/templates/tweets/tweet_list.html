@@ -56,7 +56,19 @@
             <div class="media-body">
                 ${content} <br/>
                 via <a href="${url}">${user}</a> | ${dateDisplay}
-                <a href="#">view</a>
+                <a href="${detail}">view</a> | <a href="${reTweet}">Retweet</a>
+            </div>
+        </div>
+        <hr/>
+    </script>
+    <script id="retweet" type="text/x-template">
+        <div class="media">
+            <div class="media-body">
+                <span style="color:#cccccc">retweet via ${tweetUser} on ${tweetDateDisplay}</span>
+                <br/>
+                ${content} <br/>
+                via <a href="${url}">${user}</a> | ${dateDisplay}
+                <a href="${detail}">view</a> | <a href="${reTweet}">Retweet</a>
             </div>
         </div>
         <hr/>
@@ -96,12 +108,27 @@
                 } else {
                     tweetArray = [];
                     $.each(tweetList, function (key, value) {
-                        tweetArray.push($('#tweet').tmpl({
-                            'content': value.content,
-                            'user': value.user.username,
-                            'dateDisplay': value.date_display,
-                            'url': value.user.url,
-                        }))
+                        if(value.parent) {
+                            tweetArray.push($('#retweet').tmpl({
+                                "tweetUser": value.user.username,
+                                'tweetDateDisplay' : value.date_display,
+                                'content': value.parent.content,
+                                'user': value.parent.user.username,
+                                'dateDisplay': value.parent.date_display,
+                                'url': value.parent.user.url,
+                                'detail': '/tweet/' + value.parent.id + "/",
+                                'reTweet': '/tweet/' +value.parent.id + "/retweet/"
+                            }))
+                        } else {
+                            tweetArray.push($('#tweet').tmpl({
+                                'content': value.content,
+                                'user': value.user.username,
+                                'dateDisplay': value.date_display,
+                                'url': value.user.url,
+                                'detail': '/tweet/' + value.id + "/",
+                                'reTweet': '/tweet/' +value.id + "/retweet/"
+                            }))
+                        }
                     });
                     if (endlessPagination) {
                         $("#tweet-container").append(tweetArray);
