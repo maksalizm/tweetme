@@ -56,7 +56,7 @@
             <div class="media-body">
                 ${content} <br/>
                 via <a href="${url}">${user}</a> | ${dateDisplay}
-                <a href="${detail}">view</a> | <a href="${reTweet}">Retweet</a>
+                <a href="${detail}">view</a> | <a class="retweet" href="${reTweet}">Retweet</a>
             </div>
         </div>
         <hr/>
@@ -68,7 +68,7 @@
                 <br/>
                 ${content} <br/>
                 via <a href="${url}">${user}</a> | ${dateDisplay}
-                <a href="${detail}">view</a> | <a href="${reTweet}">Retweet</a>
+                <a href="${detail}">view</a> | <a class="retweet" href="${reTweet}">Retweet</a>
             </div>
         </div>
         <hr/>
@@ -94,10 +94,32 @@
 
             fetchTweets();
 
+            $(".retweet").on('click', function(e) {
+                var url = "/api" + $(this).attr("href");
+
+                e.preventDefault();
+                $.ajax({
+                    method: "GET",
+                    url: url,
+                    success: function(data) {
+                        console.log(data);
+
+                    },
+                    error: function(data) {
+                        console.log("error");
+                        console.log(data);
+                    }
+                })
+            })
+
             function updateHashLinks() {
                 $('.media-body').each(function(data) {
                     var hashTagRegex = /(^|\s)#([\w\d-]+)/g;
-                    var newText = $(this).html().replace(hashTagRegex, "$1<a href='/tags/$2/'>#$2</a>");
+                    var usernameRegex = /(^|\s)@([\w\d-]+)/g;
+                    var currentHtml = $(this).html();
+                    var newText;
+                    newText = currentHtml.replace(hashTagRegex, "$1<a href='/tags/$2/'>#$2</a>");
+                    newText = newText.replace(usernameRegex, "$1@<a href='/profile/$2/'>$2</a>");
                     $(this).html(newText)
                 })
             }

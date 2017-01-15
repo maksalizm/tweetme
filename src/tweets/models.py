@@ -1,8 +1,10 @@
+import re
 from django.db import models
 from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 
+from django.db.models.signals import post_save
 from .validators import validate_content
 
 
@@ -13,8 +15,8 @@ class TweetManager(models.Manager):
         else:
             og_parent = parent_obj
 
-        qs = self.get_queryset()\
-            .filter(user=user, parent=parent_obj)\
+        qs = self.get_queryset() \
+            .filter(user=user, parent=parent_obj) \
             .filter(
             timestamp__year=timezone.now().year,
             timestamp__month=timezone.now().month,
@@ -50,3 +52,19 @@ class Tweet(models.Model):
 
     class Meta:
         ordering = ['-timestamp']
+
+
+def tweet_save_receiver(sender, instance, created, *args, **kwargs):
+    if created and not instance.parent:
+        # notify user
+        user_regex = r'@(?P<username>[\w.@+-]+)'
+        m = re.findall(user_regex, instance.content)
+
+        hash_regex = r'#(?P<hashtag>[\w\d-]+)'
+        h_m = re.findall(hash_regex, instance.content)
+
+
+
+
+
+post_save.connect(tweet_save_receiver, sender=Tweet)
