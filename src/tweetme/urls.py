@@ -22,12 +22,13 @@ from django.conf.urls.static import static
 from tweets.views import TweetListView
 from hashtags.views import HashTagView
 urlpatterns = [
+    url(r'api/', include('accounts.api.urls', namespace="profile-api")),
+    url(r'api/tweet/', include('tweets.api.urls', namespace="tweet-api")),
     url(r'^admin/', admin.site.urls),
     url(r'^$', TweetListView.as_view(), name="home"),
-    url(r'profile/', include('accounts.urls', namespace="profile")),
     url(r'tweet/', include('tweets.urls', namespace="tweet")),
     url(r'tags/(?P<hashtag>.*)/$', HashTagView.as_view(), name="hashtag"),
-    url(r'api/tweet/', include('tweets.api.urls', namespace="tweet-api")),
+    url(r'profile/', include('accounts.urls', namespace="profile")),
 ]
 
 if settings.DEBUG:

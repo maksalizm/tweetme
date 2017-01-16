@@ -18,7 +18,7 @@ class ParentTweetModelSerializer(serializers.ModelSerializer):
             'content',
             'timestamp',
             'date_display',
-            'timesince'
+            'timesince',
         ]
 
     def get_date_display(self, obj):
@@ -44,6 +44,7 @@ class TweetModelSerializer(serializers.ModelSerializer):
             'date_display',
             'timesince',
             'parent',
+            'liked',
         ]
 
     def get_date_display(self, obj):

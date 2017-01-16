@@ -14,15 +14,6 @@
                     {% endif %}
                 </a>
             </p>
-        </div>
-        <div class="col-sm-9 col-xs-12">
-            <h1>Tweets</h1>
-            {% for tweet in object.tweet_set.all %}
-                {{ tweet }}
-                <br/>
-            {% endfor %}
-
-            <hr/>
             <h1>Following <small>{{ object.profile.get_following.count }}</small></h1>
             {% for user in object.profile.get_following %}
                 <a href="/profile/{{  user.username }}/">{{ user.username }}</a>
@@ -38,7 +29,176 @@
                 {% empty %}
                 <h4>Not followed by any users</h4>
             {% endfor %}
+        </div>
+        <div class="col-sm-9 col-xs-12">
+            <h1>Tweets</h1>
+            <div id="tweet-container">
 
+            </div>
+            <a href="#" id="load_more">Load More Tweets</a>
+            <hr/>
         </div>
     </div>
 {% endblock content %}
+
+
+{% block script %}
+    <script src="http://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.js"></script>
+    <script id="tweet" type="text/x-template">
+        <div class="media">
+            <div class="media-body">
+                ${content} <br/>
+                via <a href="${url}">${user}</a> | ${dateDisplay}
+                <a href="${detail}">view</a> | <a class="retweet" href="${reTweet}">Retweet</a>
+                | <a href="${like}" class="tweet-like" data-id="${id}">like</a>
+            </div>
+        </div>
+        <hr/>
+    </script>
+    <script id="retweet" type="text/x-template">
+        <div class="media">
+            <div class="media-body">
+                <span style="color:#cccccc">retweet via ${tweetUser} on ${tweetDateDisplay}</span>
+                <br/>
+                ${content} <br/>
+                via <a href="${url}">${user}</a> | ${dateDisplay}
+                <a href="${detail}">view</a> | <a class="retweet" href="${reTweet}">Retweet</a>
+                | <a href="${like}" class="tweet-like" data-id="${id}">like</a>
+            </div>
+        </div>
+        <hr/>
+    </script>
+    <script>
+        function getParameterByName(name, url) {
+            if (!url) {
+                url = window.location.href;
+            }
+            name = name.replace(/[\[\]]/g, "\\$&");
+            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, " "));
+        }
+
+        $(document).ready(function () {
+            var query = getParameterByName('q');
+            var tweetList = [];
+            var tweetArray = [];
+            var nextTweetUrl;
+
+            fetchTweets();
+
+            $(".retweet").on('click', function(e) {
+                var url = "/api" + $(this).attr("href");
+
+                e.preventDefault();
+                $.ajax({
+                    method: "GET",
+                    url: url,
+                    success: function(data) {
+                        console.log(data);
+
+                    },
+                    error: function(data) {
+                        console.log("error");
+                        console.log(data);
+                    }
+                })
+            })
+
+            function updateHashLinks() {
+                $('.media-body').each(function(data) {
+                    var hashTagRegex = /(^|\s)#([\w\d-]+)/g;
+                    var usernameRegex = /(^|\s)@([\w\d-]+)/g;
+                    var currentHtml = $(this).html();
+                    var newText;
+                    newText = currentHtml.replace(hashTagRegex, "$1<a href='/tags/$2/'>#$2</a>");
+                    newText = newText.replace(usernameRegex, "$1@<a href='/profile/$2/'>$2</a>");
+                    $(this).html(newText)
+                })
+            }
+
+            function parseTweet(endlessPagination) {
+                if (tweetList == 0) {
+                    $("#tweet-container").text('no tweet')
+                } else {
+                    tweetArray = [];
+                    $.each(tweetList, function (key, value) {
+                        if(value.parent) {
+                            tweetArray.push($('#retweet').tmpl({
+                                "tweetUser": value.user.username,
+                                'tweetDateDisplay' : value.date_display,
+                                'content': value.parent.content,
+                                'user': value.parent.user.username,
+                                'dateDisplay': value.parent.date_display,
+                                'url': value.parent.user.url,
+                                'detail': '/tweet/' + value.parent.id + "/",
+                                'reTweet': '/tweet/' +value.parent.id + "/retweet/",
+                                'id': value.parent.id,
+                                'like': 'api/tweet/' +value.parent.id + "/like/"
+                            }))
+                        } else {
+                            tweetArray.push($('#tweet').tmpl({
+                                'content': value.content,
+                                'user': value.user.username,
+                                'dateDisplay': value.date_display,
+                                'url': value.user.url,
+                                'detail': '/tweet/' + value.id + "/",
+                                'reTweet': '/tweet/' +value.id + "/retweet/",
+                                'id': value.id,
+                                'like': 'api/tweet/' +value.id + "/like/"
+                            }))
+                        }
+                    });
+                    if (endlessPagination) {
+                        $("#tweet-container").append(tweetArray);
+                    } else {
+                        $("#tweet-container").html(tweetArray);
+                    }
+                }
+            }
+
+            function fetchTweets(sendData, url, endlessPagination) {
+                var username;
+                var getUrl = window.location.href;
+                username = getUrl.split('/')[4];
+                var fetchUrl;
+                if(!url) {
+                    fetchUrl = "/api/"+username+"/tweet/";
+                } else {
+                    fetchUrl = url;
+                }
+                console.log(fetchUrl);
+                var promise = $.ajax(
+                    {
+                        url: fetchUrl,
+                        method: "GET",
+                        data: sendData,
+                        success: function (data) {
+                            tweetList = data.results;
+                            if(data.next) {
+                                nextTweetUrl = data.next;
+                            } else {
+                                $("#load_more").css("display", "none");
+                            }
+                            if (endlessPagination) {
+                                parseTweet(true);
+                                updateHashLinks()
+                            } else {
+                                parseTweet(false);
+                                updateHashLinks();
+                            }
+                        }
+                    }
+                );
+            }
+
+            $('#load_more').on('click', function (evt) {
+                evt.preventDefault();
+                fetchTweets("", nextTweetUrl, true)
+            })
+        })
+
+    </script>
+{% endblock script %}

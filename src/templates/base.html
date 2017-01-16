@@ -79,5 +79,24 @@
 </script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
 <script src="{% static 'js/bootstrap.min.js' %}"></script>
+<script>
+    $(document).on('click','.tweet-like', function(e){
+        e.preventDefault();
+        var $self = $(this);
+        var tweetId = $self.data('id');
+        var url = "/api/tweet/" + tweetId + "/like/";
+        $.ajax({
+            method:"GET",
+            url: url,
+            success: function(data) {
+                if (data.liked) {
+                    $self.text("Liked");
+                } else {
+                    $self.text("unLiked");
+                }
+            }
+        })
+    })
+</script>
 </body>
 </html>
