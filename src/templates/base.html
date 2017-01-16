@@ -89,6 +89,7 @@
             method:"GET",
             url: url,
             success: function(data) {
+                console.log(data);
                 if (data.liked) {
                     $self.text("Liked");
                 } else {

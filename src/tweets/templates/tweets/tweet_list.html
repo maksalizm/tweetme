@@ -33,7 +33,7 @@
                 ${content} <br/>
                 via <a href="${url}">${user}</a> | ${dateDisplay}
                 <a href="${detail}">view</a> | <a class="retweet" href="${reTweet}">Retweet</a>
-                | <a href="${like}" class="tweet-like" data-id="${id}">like</a>
+                | <a href="${like}" class="tweet-like" data-id="${id}">${likeContent} ${likesCount}</a>
             </div>
         </div>
         <hr/>
@@ -46,7 +46,7 @@
                 ${content} <br/>
                 via <a href="${url}">${user}</a> | ${dateDisplay}
                 <a href="${detail}">view</a> | <a class="retweet" href="${reTweet}">Retweet</a>
-                | <a href="${like}" class="tweet-like" data-id="${id}">like</a>
+                | <a href="${like}" class="tweet-like" data-id="${id}">${likeContent} ${likesCount}</a>
             </div>
         </div>
         <hr/>
@@ -108,6 +108,13 @@
                 } else {
                     tweetArray = [];
                     $.each(tweetList, function (key, value) {
+
+                        if(value.did_like) {
+                            var likeContent = "Unliked"
+                        } else {
+                            var likeContent = "Like"
+                        }
+
                         if(value.parent) {
                             tweetArray.push($('#retweet').tmpl({
                                 "tweetUser": value.user.username,
@@ -119,7 +126,9 @@
                                 'detail': '/tweet/' + value.parent.id + "/",
                                 'reTweet': '/tweet/' +value.parent.id + "/retweet/",
                                 'id': value.parent.id,
-                                'like': 'api/tweet/' +value.parent.id + "/like/"
+                                'like': 'api/tweet/' +value.parent.id + "/like/",
+                                'likesCount' : value.parent.likes,
+                                'likeContent' : likeContent
                             }))
                         } else {
                             tweetArray.push($('#tweet').tmpl({
@@ -130,7 +139,9 @@
                                 'detail': '/tweet/' + value.id + "/",
                                 'reTweet': '/tweet/' +value.id + "/retweet/",
                                 'id': value.id,
-                                'like': 'api/tweet/' +value.id + "/like/"
+                                'like': 'api/tweet/' +value.id + "/like/",
+                                'likesCount' : value.likes,
+                                'likeContent' : likeContent
                             }))
                         }
                     });
