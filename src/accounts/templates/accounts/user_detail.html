@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load recommended %}
 {% block content %}
     <div class="row">
         <div class="col-sm-3 col-xs-12">
@@ -29,6 +29,8 @@
                 {% empty %}
                 <h4>Not followed by any users</h4>
             {% endfor %}
+            <h1>Recommended to Follow</h1>
+            {% recommended request.user %}
         </div>
         <div class="col-sm-9 col-xs-12">
             <h1>Tweets</h1>
