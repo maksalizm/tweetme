@@ -24,10 +24,13 @@
     {% block content %}
     {% endblock content %}
 </div>
+
+{% include "reply-modal.html" %}
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 
 {% block script %}{% endblock script %}
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
 <script>
     $(document).ready(function () {
         $('#navbar_search_form')
@@ -47,13 +50,57 @@
                 $("#tweet-container").text('no tweet')
             } else {
                 $.each(data.results, function (key, value) {
-                    tweetArray.push($('#tweet').tmpl({
-                        'content': value.content,
-                        'user': value.user.username,
-                        'dateDisplay': value.date_display,
-                    }))
-                });
-                $("#tweet-container").html(tweetArray);
+                    var isReply = value.reply;
+                    if (value.did_like) {
+                        var likeContent = "Unliked"
+                    } else {
+                        var likeContent = "Like"
+                    }
+                    if (value.parent && !isReply) {
+                        tweetArray.push($('#retweet').tmpl({
+                            "tweetUser": value.parent.user.username,
+                            'tweetDateDisplay': value.date_display,
+                            'content': value.parent.content,
+                            'user': value.user.username,
+                            'dateDisplay': value.parent.date_display,
+                            'url': value.parent.user.url,
+                            'detail': '/tweet/' + value.parent.id + "/",
+                            'reTweet': '/tweet/' + value.parent.id + "/retweet/",
+                            'id': value.id,
+                            'like': 'api/tweet/' + value.id + "/like/",
+                            'likesCount': value.likes,
+                            'likeContent': likeContent
+                        }))
+                    } else if (value.parent && isReply) {
+                        tweetArray.push($('#retweet_reply').tmpl({
+                            "tweetUser": value.parent.user.username,
+                            'content': value.content,
+                            'user': value.user.username,
+                            'dateDisplay': value.parent.date_display,
+                            'url': value.parent.user.url,
+                            'detail': '/tweet/' + value.parent.id + "/",
+                            'reTweet': '/tweet/' + value.parent.id + "/retweet/",
+                            'id': value.id,
+                            'like': 'api/tweet/' + value.id + "/like/",
+                            'likesCount': value.likes,
+                            'likeContent': likeContent
+                        }))
+                    } else {
+                        tweetArray.push($('#tweet').tmpl({
+                            'content': value.content,
+                            'user': value.user.username,
+                            'dateDisplay': value.date_display,
+                            'url': value.user.url,
+                            'detail': '/tweet/' + value.id + "/",
+                            'reTweet': '/tweet/' + value.id + "/retweet/",
+                            'id': value.id,
+                            'like': 'api/tweet/' + value.id + "/like/",
+                            'likesCount': value.likes,
+                            'likeContent': likeContent
+                        }))
+                    }
+                    $("#tweet-container").html(tweetArray);
+                })
             }
         }
 
@@ -75,29 +122,66 @@
                 }
             );
         }
-    });
-</script>
-<!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="{% static 'js/bootstrap.min.js' %}"></script>
-<script>
-    $(document).on('click','.tweet-like', function(e){
-        e.preventDefault();
-        var $self = $(this);
-        var tweetId = $self.data('id');
-        var url = "/api/tweet/" + tweetId + "/like/";
-        $.ajax({
-            method:"GET",
-            url: url,
-            success: function(data) {
-                console.log(data);
-                if (data.liked) {
-                    $self.text("Liked");
-                } else {
-                    $self.text("unLiked");
+
+        $(document).on('click', '.tweet-like', function (e) {
+            e.preventDefault();
+            var $self = $(this);
+            var tweetId = $self.data('id');
+            var url = "/api/tweet/" + tweetId + "/like/";
+            $.ajax({
+                method: "GET",
+                url: url,
+                success: function (data) {
+                    console.log(data);
+                    if (data.liked) {
+                        $self.text("Liked");
+                    } else {
+                        $self.text("unLiked");
+                    }
                 }
-            }
+            })
         })
-    })
+        $(document).on('click', '.tweet-reply', function (e) {
+            e.preventDefault();
+            var $self = $(this);
+            var tweetId = $self.data('id');
+            var tweetUser = $self.data('user');
+
+            $('#replyModal').modal({});
+
+            $('#replyModal')
+                .on('shown.bs.modal', function () {
+                    $('#tweetReplyArea').focus();
+                })
+                .find('textarea')
+                .val("@" + tweetUser);
+        });
+        $("#sendDataReply").on('click', function (evt) {
+            evt.preventDefault();
+
+            var $form = $('#tweetReplyForm');
+            var formData = $form.serialize();
+            var promise = $.ajax(
+                {
+                    url: "/api/tweet/create-api/",
+                    method: "POST",
+                    data: formData,
+                    success: function (data) {
+                    },
+                    error: function (data) {
+                        console.log(data.status);
+                        console.log(data.statusText);
+                    }
+                }
+            );
+            promise.done(function () {
+                fetchTweets();
+                $("#tweetReplyArea").val('');
+                $('#replyModal')
+                    .modal('hide')
+            })
+        });
+    });
 </script>
 </body>
 </html>

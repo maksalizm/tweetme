@@ -51,6 +51,7 @@
                 via <a href="${url}">${user}</a> | ${dateDisplay}
                 <a href="${detail}">view</a> | <a class="retweet" href="${reTweet}">Retweet</a>
                 | <a href="${like}" class="tweet-like" data-id="${id}">${likeContent} ${likesCount}</a>
+                | <a class="tweet-reply" data-id="${id}" data-user="${user}">Reply</a>
             </div>
         </div>
         <hr/>
@@ -64,6 +65,21 @@
                 via <a href="${url}">${user}</a> | ${dateDisplay}
                 <a href="${detail}">view</a> | <a class="retweet" href="${reTweet}">Retweet</a>
                 | <a href="${like}" class="tweet-like" data-id="${id}">${likeContent} ${likesCount}</a>
+                | <a class="tweet-reply" data-id="${id}" data-user="${user}">Reply</a>
+            </div>
+        </div>
+        <hr/>
+    </script>
+    <script id="retweet_reply" type="text/x-template">
+        <div class="media">
+            <div class="media-body">
+                <span style="color:#cccccc">Reply  @${tweetUser}</span>
+                <br/>
+                ${content} <br/>
+                via <a href="${url}">${user}</a> | ${dateDisplay}
+                <a href="${detail}">view</a> | <a class="retweet" href="${reTweet}">Retweet</a>
+                | <a href="${like}" class="tweet-like" data-id="${id}">${likeContent} ${likesCount}</a>
+                | <a class="tweet-reply" data-id="${id}" data-user="${user}">Reply</a>
             </div>
         </div>
         <hr/>
@@ -125,24 +141,39 @@
                 } else {
                     tweetArray = [];
                     $.each(tweetList, function (key, value) {
+                        var isReply = value.reply;
                         if(value.did_like) {
                             var likeContent = "Unliked"
                         } else {
                             var likeContent = "Like"
                         }
-                        if(value.parent) {
+                        if(value.parent&& !isReply) {
                             tweetArray.push($('#retweet').tmpl({
-                                "tweetUser": value.user.username,
+                                "tweetUser": value.parent.user.username,
                                 'tweetDateDisplay' : value.date_display,
                                 'content': value.parent.content,
-                                'user': value.parent.user.username,
+                                'user': value.user.username,
                                 'dateDisplay': value.parent.date_display,
                                 'url': value.parent.user.url,
                                 'detail': '/tweet/' + value.parent.id + "/",
                                 'reTweet': '/tweet/' +value.parent.id + "/retweet/",
-                                'id': value.parent.id,
-                                'like': 'api/tweet/' +value.parent.id + "/like/",
-                                'likesCount' : value.parent.likes,
+                                'id': value.id,
+                                'like': 'api/tweet/' +value.id + "/like/",
+                                'likesCount' : value.likes,
+                                'likeContent' : likeContent
+                            }))
+                        } else if(value.parent&& isReply){
+                            tweetArray.push($('#retweet_reply').tmpl({
+                                "tweetUser": value.parent.user.username,
+                                'content': value.content,
+                                'user': value.user.username,
+                                'dateDisplay': value.parent.date_display,
+                                'url': value.parent.user.url,
+                                'detail': '/tweet/' + value.parent.id + "/",
+                                'reTweet': '/tweet/' +value.parent.id + "/retweet/",
+                                'id': value.id,
+                                'like': 'api/tweet/' +value.id + "/like/",
+                                'likesCount' : value.likes,
                                 'likeContent' : likeContent
                             }))
                         } else {
